@@ -1,7 +1,7 @@
 import { useState } from "react";
 import axios from "../services/api";
 import { useAuth } from "../auth/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 export default function Register() {
   const [data, setData] = useState({ username: "", email: "", password: "" });
@@ -57,6 +57,9 @@ export default function Register() {
         Register
       </button>
       {error && <p className="text-red-600 mt-2">{error}</p>}
+      <Link to="/login" className="text-sm text-blue-600 hover:underline text-center mt-2 block">
+        Уже есть аккаунт? Войти
+      </Link>
     </form>
   );
 }

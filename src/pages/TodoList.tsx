@@ -9,6 +9,8 @@ export default function TodoList() {
   const { token, logout } = useAuth();
   const [todos, setTodos] = useState<Todo[]>([]);
   const [title, setTitle] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
 
   if (!token) return <Navigate to="/login" replace />;
 
@@ -36,6 +38,18 @@ export default function TodoList() {
     await axios.delete(`/todos/${id}`);
     setTodos(prev => prev.filter(t => t.id !== id));
   };
+
+  const UpdateTodo = async (todo: Todo, newTitle: string) => {
+    const res = await axios.put(`/todos/${todo.id}`, {
+      ...todo,
+      title: newTitle,
+    });
+    setTodos(prev =>
+      prev.map(t => (t.id === todo.id ? res.data : t))
+    );
+    setEditingId(null);
+    setEditingTitle("");
+  }
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
@@ -70,19 +84,47 @@ export default function TodoList() {
               key={todo.id}
               className="flex items-center justify-between bg-gray-50 p-3 rounded shadow-sm"
             >
-              <span
-                onClick={() => toggleTodo(todo)}
-                className={`cursor-pointer select-none ${todo.completed ? "line-through text-gray-400" : "text-gray-900"}`}
-              >
-                {todo.title}
-              </span>
-              <button
-                onClick={() => deleteTodo(todo.id)}
-                className="text-red-600 hover:text-red-800 font-bold text-xl leading-none"
-                aria-label="Delete task"
-              >
-                ❌
-              </button>
+              {editingId === todo.id ? (
+                <>
+                  <input
+                    value={editingTitle}
+                    onChange={e => setEditingTitle(e.target.value)}
+                    className="flex-grow px-2 py-1 border border-gray-300 rounded mr-2"
+                  />
+                  <button
+                    onClick={() => UpdateTodo(todo, editingTitle)}
+                    className="text-green-600 hover:text-green-800 font-bold text-xl leading-none"
+                    aria-label="Save task"
+                  >
+                    💾
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span
+                    onClick={() => toggleTodo(todo)}
+                    className={`cursor-pointer select-none ${todo.completed ? "line-through text-gray-400" : "text-gray-900"}`}
+                  >
+                    {todo.title}
+                  </span>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => { setEditingId(todo.id); setEditingTitle(todo.title); }}
+                      className="text-blue-600 hover:text-blue-800 font-bold text-xl leading-none"
+                      aria-label="Edit task"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      onClick={() => deleteTodo(todo.id)}
+                      className="text-red-600 hover:text-red-800 font-bold text-xl leading-none"
+                      aria-label="Delete task"
+                    >
+                      ❌
+                    </button>
+                  </div>
+                </>
+              )}
             </li>
           ))}
         </ul>
